@@ -94,7 +94,62 @@ class HillClimbing(LocalSearch):
 class HillClimbingReset(LocalSearch):
     """Algoritmo de ascension de colinas con reinicio aleatorio."""
 
-    # COMPLETAR
+    def solve(self, problem: OptProblem):
+        """Resuelve un problema de optimizacion con ascension de colinas.
+
+        Argumentos:
+        ==========
+        problem: OptProblem
+            un problema de optimizacion
+        """
+        # Inicio del reloj
+        start = time()
+        # Definimos el numero de reinicios
+        cant_reinicios = 10000
+
+        # Arrancamos del estado inicial
+        actual = problem.init
+        value = problem.obj_val(problem.init)
+        # Definimos la mejor solución
+        mejor_sol = actual
+        while True:
+
+            # Determinar las acciones que se pueden aplicar
+            # y las diferencias en valor objetivo que resultan
+            diff = problem.val_diff(actual)
+
+            # Buscar las acciones que generan el mayor incremento de valor obj
+            max_acts = [act for act, val in diff.items() if val ==
+                        max(diff.values())]
+
+            # Elegir una accion aleatoria
+            act = choice(max_acts)
+
+            # Retornar si estamos en un optimo local y llegamos al limite de reinicios
+            # (diferencia de valor objetivo no positiva)
+            if diff[act] <= 0 and cant_reinicios == 0:
+
+                self.tour = mejor_sol
+                self.value = problem.obj_val(mejor_sol)
+                end = time()
+                self.time = end-start
+                return
+
+            # Sino, nos movemos al sucesor
+            else:
+
+                actual = problem.result(actual, act)
+                value = value + diff[act]
+                self.niters += 1
+            
+            #Si se llego a un optimo local o global y todavia quedan reinicios por probar
+            #Comparamos nuestra solucion con la mejor encontrada y reiniciamos el estado inicial
+            if diff[act] <= 0 and cant_reinicios > 0:
+                if problem.obj_val(actual) > problem.obj_val(mejor_sol):
+                    mejor_sol = actual
+                actual = problem.random_reset()
+                cant_reinicios -= 1
+            
 
 
 class Tabu(LocalSearch):
